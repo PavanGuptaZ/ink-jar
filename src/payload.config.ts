@@ -5,6 +5,7 @@ import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
+import { s3Storage } from '@payloadcms/storage-s3'
 
 import { Users } from './payload/collections/Users'
 import { Media } from './payload/collections/Media'
@@ -30,7 +31,7 @@ export default buildConfig({
   },
   collections: [Users, Media, Categories, Posts],
   editor,
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET!,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -40,6 +41,18 @@ export default buildConfig({
   sharp,
   plugins: [
     payloadCloudPlugin(),
-    // storage-adapter-placeholder
+    s3Storage({
+      bucket: env.AWS_S3_BUCKET,
+      config: {
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+        region: env.AWS_REGION,
+      },
+      collections: {
+        media: true,
+      },
+    }),
   ],
 })
